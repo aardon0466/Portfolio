@@ -1,0 +1,819 @@
+<!-- Author: Alejandro Ardon, based on a template by Dr. Bradford A. Towle Jr. -->
+<!-- Date: 4/11/2024 -->
+
+<HTML lang="en">
+	<Head>
+	<Title>Navigating Asteroids</Title>	
+
+		<script id="2dVertexShader" type="notjs">
+		attribute vec4 a_position;	
+		attribute vec3 a_color;
+		varying vec3 v_color;
+
+		//This is to place the object
+		uniform vec3 u_translation;
+		uniform vec3 u_rotation;	
+		uniform vec3 u_scale;
+
+		vec4 PositionObject(vec4 pos)
+		{
+			mat4 translateM = mat4(1.0,0.0,0.0,0.0,
+									0.0,1.0,0.0,0.0,
+									0.0,0.0,1.0,0.0,
+									u_translation.x,u_translation.y,u_translation.z,1.0);
+			return translateM*pos;	
+		}
+
+		vec4 ScaleObject(vec4 pos)
+		{
+			if(length(u_scale) != 0.0)
+			{
+			mat4 scaleM = mat4(u_scale.x,0.0,0.0,0.0,
+								0.0,u_scale.y,0.0,0.0,
+								0.0,0.0,u_scale.z,0.0,
+								0.0,0.0,0.0,1.0);
+			return scaleM * pos;
+			}
+			else
+			{
+				return pos;
+			}
+		}
+
+		vec4 RotateObject(vec4 pos)
+		{
+			vec3 c = cos(u_rotation);
+			vec3 s = sin(u_rotation);
+			mat4 rotateX = mat4(1.0,0.0,0.0,0.0,
+								0.0,c.x,s.x,0.0,
+								0.0,-1.0*s.x,c.x,0.0,
+								0.0,0.0,0.0,1.0);
+							
+			mat4 rotateY = mat4(c.y,0.0,-1.0*s.y,0.0,
+								0.0,1.0,0.0,0.0,
+								s.y,0.0,c.y,0.0,
+								0.0,0.0,0.0,1.0);
+							
+			mat4 rotateZ = mat4(c.z,s.z,0.0,0.0,
+								-1.0*s.z,c.z,0.0,0.0,
+								0.0,0.0,1.0,0.0,
+								0.0,0.0,0.0,1.0);	
+							
+			return rotateX* rotateY*rotateZ*pos;
+		}
+	
+		//This was added for camera move
+		uniform vec3 cameraLoc;
+		uniform vec3 cameraRotation;
+		uniform float n;
+		uniform float f;
+		uniform float r;
+		uniform float t;
+			
+		vec4 MoveCamera(vec4 pos)
+		{
+			vec3 cw = cos(1.0*cameraRotation);
+			vec3 sw = sin(1.0*cameraRotation);
+
+			mat4 translateView = mat4(1.0,0.0,0.0,0.0,
+									0.0,1.0,0.0,0.0,
+									0.0,0.0,-1.0,0.0,
+									-1.0*cameraLoc.x,-1.0*cameraLoc.y,cameraLoc.z,1.0);
+									
+			mat4 rotateYView = mat4(cw.y,0.0,-1.0*sw.y,0.0,
+									0.0,1.0,0.0,0.0,
+									sw.y,0.0,cw.y,0.0,
+									0.0,0.0,0.0,1.0);
+						
+			mat4 rotateXView = mat4(1.0,0.0,0.0,0.0,
+									0.0,cw.x,sw.x,0.0,
+									0.0,-1.0*sw.x,cw.x,0.0,
+									0.0,0.0,0.0,1.0);
+
+			mat4 rotateZView = mat4(cw.z,sw.z,0.0,0.0,
+									-1.0*sw.z,cw.z,0.0,0.0,
+									0.0,0.0,1.0,0.0,
+									0.0,0.0,0.0,1.0);	
+							
+			return rotateXView*rotateYView*rotateZView*translateView*pos;
+		}
+
+		vec4 ApplyProjection(vec4 pos)
+		{
+
+			mat4 ComplexPerspective = mat4(n/r, 0.0,0.0,0.0,
+											0.0, n/t,0.0,0.0,
+											0.0,0.0,-1.0*(f+n)/(f-n),-1.0,
+											0.0,0.0,-2.0*f*n/(f-n),0.0);
+								
+			mat4 ComplexOrtho = mat4(1.0/r,0.0,0.0,0.0,
+									0.0,1.0/t,0.0,0.0,	
+									0.0,0.0,1.0,0.0,
+									0.0,0.0,0.0,1.0	);
+					
+			//Choose which projection you want here:  Perspective or Orthographic			
+			return ComplexPerspective*pos;
+		}
+		
+
+		//End of Camera Move
+
+
+		vec4 LookAt(vec3 F, vec3 U, vec4 pos)
+		{
+			//precision mediump float;
+			vec3 R = cross(F,U);
+			mat4 LookAt = mat4(R.x,R.y,R.z,0.0,
+								U.x,U.y,U.z,0.0,
+								F.x,F.y,F.z,0.0,
+								0.0,0.0,0.0,1.0);
+			
+			return LookAt*pos;	
+		}
+
+		void main()
+		{
+		gl_PointSize = 10.0;
+		v_color = a_color;
+		//Now the final gl_Position will be the world space coordinates.
+		gl_Position=ApplyProjection(MoveCamera(PositionObject(RotateObject(ScaleObject(a_position)))));
+		}		
+		</script>
+		<script id="2dFragmentShader" type="notjs">
+		precision mediump float;
+		varying vec3 v_color;
+		void main()
+		{
+			gl_FragColor = vec4(v_color,1); //Between 0 and 1.
+		}
+		</script>
+		<script>
+		class WebGL_Interface
+		{
+			constructor()
+			{
+				this.vertexShaderSource = document.getElementById("2dVertexShader").text;
+				this.fragmentShaderSource = document.getElementById("2dFragmentShader").text;
+				this.vertexShader = this.createShader(gl.VERTEX_SHADER, this.vertexShaderSource);
+				this.fragmenShader = this.createShader(gl.FRAGMENT_SHADER, this.fragmentShaderSource);
+				//Link to program
+				this.program = this.createProgram(this.vertexShader,this.fragmenShader);
+				//setup our viewport
+				gl.viewport(0,0, gl.canvas.width, gl.canvas.height);
+				//set clear colors
+				gl.clearColor(1,1,1,1);
+				gl.clear(gl.COLOR_BUFFER_BIT);		
+				
+				gl.enable(gl.DEPTH_TEST);
+				
+				gl.useProgram(this.program);
+			}
+			
+			createShader(type,source)
+			{
+				var shader = gl.createShader(type);
+				gl.shaderSource(shader,source);
+				gl.compileShader(shader);
+				var success = gl.getShaderParameter(shader,gl.COMPILE_STATUS);
+				if(success)
+				{
+					return shader;
+				}
+				//Else it didn't work
+				console.error(gl.getShaderInfoLog(shader));
+				gl.deleteShader(shader);
+			}
+			
+			createProgram(vs,fs)
+			{
+				var program = gl.createProgram();
+				gl.attachShader(program,vs);
+				gl.attachShader(program,fs);
+				gl.linkProgram(program);
+				var succsess = gl.getProgramParameter(program,gl.LINK_STATUS);
+				if(succsess)
+				{
+					return program;
+				}
+				console.error(gl.getProgramInfoLog(program));
+				gl.deleteProgram(program);	
+			}
+		
+		}
+		
+		class Transform
+		{
+			constructor()
+			{
+				this.forward = [0,0,1];
+				this.right = [1,0,0];
+				this.up = [0,1,0];
+			}
+		
+			doRotations(RotAngles)
+			{
+				this.xRot = [
+							[1,0,0,0],
+							[0,Math.cos(RotAngles[0]),-1*Math.sin(RotAngles[0]),0],
+							[0,Math.sin(RotAngles[0]),Math.cos(RotAngles[0]),0],
+							[0,0,0,1]
+						];		
+				this.yRot = [
+						[Math.cos(RotAngles[1]),0,Math.sin(RotAngles[1]),0],
+						[0,1,0,0],
+						[-1*Math.sin(RotAngles[1]),0,Math.cos(RotAngles[1]),0],
+						[0,0,0,1]	
+						];
+				this.zRot = [
+							[Math.cos(RotAngles[2]),-1*Math.sin(RotAngles[2]),0,0],
+							[Math.sin(RotAngles[2]),Math.cos(RotAngles[2]),0,0],
+							[0,0,1,0],
+							[0,0,0,1]
+						]		
+				this.forward = this.crossMultiply(this.zRot,this.crossMultiply(this.yRot,this.crossMultiply(this.xRot,[0,0,1,0])))
+				this.right = this.crossMultiply(this.zRot,this.crossMultiply(this.yRot,this.crossMultiply(this.xRot,[1,0,0,0])))
+				this.up = this.crossMultiply(this.zRot,this.crossMultiply(this.yRot,this.crossMultiply(this.xRot,[0,1,0,0])))
+			}			
+			crossMultiply(M,V)
+			{
+			var temp = [
+						M[0][0]*V[0]+M[0][1]*V[1]+M[0][2] * V[2]+ M[0][3]*V[3],
+						M[1][0]*V[0]+M[1][1]*V[1]+M[1][2] * V[2]+ M[1][3]*V[3],
+						M[2][0]*V[0]+M[2][1]*V[1]+M[2][2] * V[2]+ M[2][3]*V[3],
+						M[3][0]*V[0]+M[3][1]*V[1]+M[3][2] * V[2]+ M[3][3]*V[3]
+						]
+				return temp;
+			}
+			
+		}
+		
+		class GameObject
+		{
+			constructor() 
+			{
+				this.loc = [0,0,0];
+				this.rot = [0,0,0];
+				this.isTrigger = false;
+				this.isPlayer = false;
+				this.collissionRadius = 1.0;
+				this.velocity = [0,0,0];
+				this.angVelocity = [0,0,0];
+				this.name = "default";
+				this.id = 0;
+				this.prefab;
+				this.transform = new Transform();
+			}
+	
+			move()
+			{
+				var tempP = [0,0,0]
+				for(var i =0; i< 3;i ++)
+				{
+					tempP[i] = this.loc[i];
+					tempP[i] += this.velocity[i];
+					this.rot[i] += this.angVelocity[i];
+				}		
+				if(!this.isTrigger)
+				{
+					var clear = true;
+					for(var so in m.Solid)
+					{
+						if(m.Solid[so] != this)
+						{
+							if(m.CheckCollision(tempP,this.collissionRadius,m.Solid[so].loc,m.Solid[so].collissionRadius))
+							{
+								this.onCollisionEnter(m.Solid[so])
+								m.Solid[so].onCollisionEnter(this);
+								clear = false;
+							}	
+						}
+					} 
+					if(clear)
+					{
+						this.loc = tempP;
+					}
+				}
+				else
+				{
+					this.loc = tempP;
+				}
+				for(var tr in m.Trigger)
+				{
+					if(m.Trigger[tr] != this)
+					{
+						if(m.CheckCollision(tempP,this.collissionRadius,m.Trigger[tr].loc,m.Trigger[tr].collissionRadius))
+						{
+							this.OnTriggerEnter(m.Trigger[tr]);
+							m.Trigger[tr].OnTriggerEnter(this);
+							clear = false;
+						}
+					}
+				}
+			}
+
+	
+			onCollisionEnter(other)
+			{
+				//Handle solid collisions
+			}
+
+			OnTriggerEnter(other)
+			{
+				//Handle trigger collisions
+			}
+		
+			Update()
+			{
+				console.error(this.name +" update() is NOT IMPLEMENTED!");
+			}
+			
+			Render(program)
+			{
+				console.error(this.name + " render() is NOT IMPLEMENTED!");
+			}	
+	}
+
+		class Camera extends GameObject
+		{
+			constructor()
+			{
+				super();
+				this.collissionRadius = Math.sqrt(Math.pow(2*.1, 2));
+				this.bulletLive = false;
+				this.isPlayer = true;
+			}
+			
+			Update()
+			{
+				this.angVelocity = [0,0,0];
+	
+				//Rotation
+				if(m.TestKey("A"))
+				{
+					this.angVelocity[1] = -.01;
+				}
+				if(m.TestKey("D"))
+				{
+					this.angVelocity[1] = .01;
+				}
+				
+				this.velocity = [0,0,0];
+				
+				//Movement
+				if(m.TestKey("W"))
+				{
+					this.transform.doRotations(this.rot)
+					for(let i =0; i <3; i ++)
+					{
+						this.velocity[i] = this.transform.forward[i]*.05
+					}	
+				}
+				if(m.TestKey("S"))
+				{
+					this.transform.doRotations(this.rot)
+					for(let i =0; i <3; i ++)
+					{
+						this.velocity[i] = this.transform.forward[i]*-.05
+					}
+				}
+				if(m.TestKey("Z"))
+				{
+					this.transform.doRotations(this.rot)
+					for(let i =0; i <3; i ++)
+					{
+						this.velocity[i] = this.transform.up[i]*.05
+					}
+				}
+				if(m.TestKey("X"))
+				{
+					this.transform.doRotations(this.rot)
+					for(let i =0; i <3; i ++)
+					{
+						this.velocity[i] = this.transform.up[i]*-.05
+					}
+				}
+				
+				//Shoot bullet when space is pressed
+				if(m.TestKey(" "))
+				{
+					if(this.bulletLive == false)
+					{
+						this.bullet = m.CreateObject(2,Bullet,[this.loc[0],this.loc[1],this.loc[2]],this.rot);
+						this.bullet.creatorID = this.id;
+						this.bulletLive = true;
+					}
+				}
+				
+				this.move()
+			}
+
+			Render(program)
+			{
+				var camLoc  = gl.getUniformLocation(program,'cameraLoc');
+				gl.uniform3fv(camLoc,new Float32Array(this.loc));
+				var worldLoc = gl.getUniformLocation(program,'cameraRotation');
+				gl.uniform3fv(worldLoc,new Float32Array(this.rot));
+			}		
+		}	
+
+		class Asteroid extends GameObject
+		{
+			constructor()
+			{
+				super();
+				this.collissionRadius = .5;
+				this.health = 3;
+				this.buffer=gl.createBuffer();
+				gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
+				
+				this.vertices =
+				[	
+				0,.5,0,.2,.2,.2,
+				-.5,0,0,.2,.2,.2,
+				0,0,-.5,.2,.2,.2,
+				
+				0,.5,0,.3,.3,.3,
+				.5,0,0,.3,.3,.3,
+				0,0,-.5,.3,.3,.3,
+				
+				-.5,0,0,.3,.3,.3,
+				0,0,-.5,.3,.3,.3,
+				0,-.5,0,.3,.3,.3,
+				
+				0,0,-.5,.2,.2,.2,
+				.5,0,0,.2,.2,.2,
+				0,-.5,0,.2,.2,.2,
+				
+				0,.5,0,.3,.3,.3,
+				-.5,0,0,.3,.3,.3,
+				0,0,.5,.3,.3,.3,
+				
+				0,.5,0,.2,.2,.2,
+				.5,0,0,.2,.2,.2,
+				0,0,.5,.2,.2,.2,
+				
+				-.5,0,0,.2,.2,.2,
+				0,0,.5,.2,.2,.2,
+				0,-.5,0,.2,.2,.2,
+				
+				0,0,.5,.3,.3,.3,
+				.5,0,0,.3,.3,.3,
+				0,-.5,0,.3,.3,.3,
+				];
+				gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.vertices), gl.STATIC_DRAW);
+			}
+
+			Update()
+			{
+			
+				if(this.health == 0)
+				{
+					m.DestroyObject(this.id);
+				}
+			
+				this.angVelocity[0]=Math.random()*.01
+				this.angVelocity[1]=Math.random()*.01
+				this.angVelocity[2]=Math.random()*.01
+				this.move()
+			}
+	 
+			Render(program)
+			{	
+				//Position
+				gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
+				var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
+				var size = 3;          
+				var type = gl.FLOAT;   
+				var normalize = false; 
+				var stride = 6*Float32Array.BYTES_PER_ELEMENT;	
+				var offset = 0;
+				gl.enableVertexAttribArray(positionAttributeLocation);
+				gl.vertexAttribPointer(positionAttributeLocation, size, type, normalize, stride, offset);
+
+				//Color
+				var colorAttributeLocation = gl.getAttribLocation(program,"a_color");
+				size = 3;
+				type = gl.FLOAT;
+				normalize = false;
+				stride = 6*Float32Array.BYTES_PER_ELEMENT;	
+				offset = 3*Float32Array.BYTES_PER_ELEMENT;	
+				gl.enableVertexAttribArray(colorAttributeLocation);
+				gl.vertexAttribPointer(colorAttributeLocation, size, type, normalize, stride, offset);
+			
+				var tranLoc  = gl.getUniformLocation(program,'u_translation');
+				gl.uniform3fv(tranLoc,new Float32Array(this.loc));
+				var thetaLoc = gl.getUniformLocation(program,'u_rotation');
+				gl.uniform3fv(thetaLoc,new Float32Array(this.rot));
+				var scaleLoc = gl.getUniformLocation(program,'u_scale');
+				gl.uniform3fv(scaleLoc,new Float32Array(this.scale));
+	
+
+				var primitiveType = gl.TRIANGLES;
+				offset = 0;
+				var count = 24;
+				gl.drawArrays(primitiveType, offset, count);
+			}
+			
+			OnTriggerEnter(other)
+			{
+				this.health--;
+			}
+			
+		}
+
+		class Bullet extends GameObject
+		{
+			constructor()
+			{
+				super();
+				this.creatorID = 0;
+				this.buffer=gl.createBuffer();
+				gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
+				
+				this.collisionRadius = 0.015;
+				
+				this.vertices = [
+					0,0,0,.5,0,0,
+				];
+				
+				for(let j = 0; j < 31; j++)
+					{
+						this.vertices.push(0.015 * Math.cos((12*Math.PI/180)*j));
+						this.vertices.push(0.015 * Math.sin((12*Math.PI/180)*j));
+						this.vertices.push(0)
+						this.vertices.push(1);
+						this.vertices.push(0);
+						this.vertices.push(0);
+					}
+				
+				gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.vertices), gl.STATIC_DRAW);
+			}
+	
+			Update()
+			{
+				//Move in the direction of the player when fired
+				this.transform.doRotations(this.rot);
+				var direction = this.transform.forward;
+		
+				for(let i = 0; i < 3; i++)
+				{
+					this.velocity[i] = direction[i]*0.1;
+				}
+				
+				//Destroy bullet if it leaves area
+				if(this.loc[0] >= 50 || this.loc[2] >= 50 ||
+				this.loc[0] <= -50 || this.loc[2] <= -50)
+				{
+					m.Solid[this.creatorID].bulletLive = false;
+					m.DestroyObject(this.id)
+				}
+				
+				this.move()
+			}
+	
+			Render(program)
+			{
+				//Position
+				gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
+				var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
+				var size = 3;
+				var type = gl.FLOAT;
+				var normalize = false;
+				var stride = 6*Float32Array.BYTES_PER_ELEMENT;
+				var offset = 0;
+				gl.enableVertexAttribArray(positionAttributeLocation);
+				gl.vertexAttribPointer(positionAttributeLocation, size, type, normalize, stride, offset);
+				
+				//Color
+				var colorAttributeLocation = gl.getAttribLocation(program, "a_color");
+				offset = 3*Float32Array.BYTES_PER_ELEMENT
+				gl.enableVertexAttribArray(colorAttributeLocation);
+				gl.vertexAttribPointer(colorAttributeLocation, size, type, normalize, stride, offset);
+				
+				//Transform and create
+				var tranLoc = gl.getUniformLocation(program,'u_translation');
+				gl.uniform3fv(tranLoc,new Float32Array(this.loc));
+				var thetaLoc = gl.getUniformLocation(program,'u_rotation');
+				gl.uniform3fv(thetaLoc,new Float32Array(this.rot));
+				
+				var primitiveType = gl.TRIANGLE_FAN;
+				offset = 0;
+				var count = 32;
+				gl.drawArrays(primitiveType, offset, count);
+			}
+	
+			OnTriggerEnter(other)
+			{
+				//If the bullet hits another object it is destroyed
+				if(other.isPlayer == false && other.isTrigger == false)
+				{
+					m.Solid[this.creatorID].bulletLive = false;
+					m.DestroyObject(this.id);
+					console.log("bullet destroyed");
+				}
+			}
+	
+		}
+
+		class main
+		{	
+			constructor()
+			{	
+				this.Visual = [];
+				this.Solid = [];
+				this.Trigger = [];
+				this.objectCounter = 0;
+			
+				this.myWEBGL = new WebGL_Interface();
+				this.Program = this.myWEBGL.program;
+				this.Keys = [];
+				
+				//Added for Camera move!
+				var camLoc  = gl.getUniformLocation(this.Program,'cameraLoc');
+				gl.uniform3fv(camLoc,new Float32Array([0,0,0]));
+				var worldLoc = gl.getUniformLocation(this.Program,'cameraRotation');
+				gl.uniform3fv(worldLoc,new Float32Array([0,0,0]));
+			
+				var tempLoc = gl.getUniformLocation(this.Program,'n');
+				gl.uniform1f(tempLoc,.1);
+				tempLoc = gl.getUniformLocation(this.Program,'f');
+				gl.uniform1f(tempLoc,500);
+				tempLoc = gl.getUniformLocation(this.Program,'r');
+				gl.uniform1f(tempLoc,.1);
+				tempLoc = gl.getUniformLocation(this.Program,'t');
+				gl.uniform1f(tempLoc,.1);
+				
+				this.CreateObject(1,Camera,[0,0,-1],[0,0,0])
+				
+				for(let i = 0; i < 200; i++)
+				{
+					this.CreateObject(1,Asteroid,[Math.random()*100 - 50,Math.random()*20 - 10,Math.random()*100 - 50],[Math.random()*(.5 - .01) + .01,Math.random()*(.5 - .01) + .01,Math.random()*(.5 - .01) + .01])
+				}
+			}
+			
+			UpdateAll()
+			{
+				for(var i in this.Visual)
+				{
+					this.Visual[i].Update();
+				}
+				for(var i in this.Solid)
+				{
+					this.Solid[i].Update();
+				}
+				for(var i in this.Trigger)
+				{
+					this.Trigger[i].Update();
+				}
+			
+			}
+			
+			RenderAll()
+			{
+				for(var i in this.Visual)
+				{
+					this.Visual[i].Render(this.Program);
+				}
+				for(var i in this.Solid)
+				{
+					this.Solid[i].Render(this.Program);
+				}
+				for(var i in this.Trigger)
+				{
+					this.Trigger[i].Render(this.Program);
+				}
+			
+			}
+			
+			CheckCollision(loc1,rad1,loc2,rad2)
+			{
+				//return true if there is a collision, else return false
+				var distance = Math.sqrt(Math.pow(loc1[0] - loc2[0],2) + Math.pow(loc1[1] - loc2[1],2) + Math.pow(loc1[2] - loc2[2],2));
+				
+				if(distance <= (rad1 + rad2))
+				{
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+			}
+			
+			CreateObject(type, prefab, loc, rot)
+			{
+				var temp = new prefab;
+				var id = "ID"+this.objectCounter;
+				this.objectCounter++;
+				temp.id = id;
+				temp.prefab = prefab;
+				for(let i = 0; i < 3; i++)
+				{
+					temp.loc[i] = loc[i];
+					temp.rot[i] = rot[i];
+				}
+				switch(type)
+				{
+					case 0:
+						this.Visual[id] = temp;
+						break;
+					case 1:
+						this.Solid[id] = temp;
+						break;
+					case 2:
+						temp.isTrigger = true;
+						this.Trigger[id] = temp;
+						break;
+					default:
+						break;
+				}
+				
+				return temp;
+			}
+			
+			DestroyObject(id)
+			{
+				if(id in this.Visual)
+				{
+					delete this.Visual[id];
+				}
+				else if(id in this.Solid)
+				{
+					delete this.Solid[id];
+				}
+				else if(id in this.Trigger)
+				{
+					delete this.Trigger[id];
+				}
+			}
+			
+			KeyDown(event)
+			{
+				this.Keys[String.fromCharCode(event.keyCode)] = true;
+			}
+			
+			KeyUp(event)
+			{
+				this.Keys[String.fromCharCode(event.keyCode)] = false;
+			}
+			
+			TestKey(test)
+			{
+				if(test in this.Keys)
+				{
+					return this.Keys[test];
+				}
+				return false;
+			}
+
+			static keyD(event)
+			{
+				m.KeyDown(event);
+			}
+			
+			static keyU(event)
+			{
+				m.KeyUp(event);
+			}
+			
+			static MainLoop()
+			{
+				m.UpdateAll();
+				m.RenderAll();
+				requestAnimationFrame(main.MainLoop);
+			}
+
+		}
+		
+		</script>
+		
+	</Head>
+	
+	<BODY style="padding: 15px;">
+		<HEADER>
+		
+		</HEADER>
+		
+		<CANVAS id="myCanvas" width="840" height="720" style = "border: 1px solid #000;">
+			Your browser does not support canvas.
+		</CANVAS>
+		
+		<SCRIPT>
+			var canvas = document.getElementById("myCanvas");
+			var gl = canvas.getContext("webgl");
+			var m = new main();
+			window.onkeydown = main.keyD;
+			window.onkeyup = main.keyU;
+			
+			requestAnimationFrame(main.MainLoop);	
+			
+		</SCRIPT>
+		
+		<FOOTER>
+		
+		</FOOTER>
+
+		
+	</BODY>
+	
+</HTML>

@@ -1,0 +1,121 @@
+<!-- Author: Alejandro Ardon, based on a template by Dr. Bradford A. Towle Jr. -->
+<!-- Date: 1/14/2024 -->
+
+<HTML lang="en">
+	<HEAD>
+		<META CHARSET="UTF-8">
+		<TITLE>Lucky Number</TITLE>
+		<script>
+		class Main
+		{
+			constructor()
+			{
+				//Create variables
+				this.name = "Main"
+				this.Number1 = 0;
+				this.Number2 = 0;
+				this.winCount = 0;
+				this.loseCount = 0;
+				
+				//Create images
+				//Happy Face
+				this.happy = new Image();
+				this.happy.src = "happy.png";
+				this.happy.alt = "Image Not Found";
+				this.happy.width = "112";
+				this.happy.height = "96";
+				
+				//Sad Face
+				this.sad = new Image();
+				this.sad.src = "sad.png";
+				this.sad.alt = "Image Not Found";
+				this.sad.width = "96";
+				this.sad.height = "96";
+			}
+			
+			playGame() 
+			{
+				//Create console instance
+				this.con = document.getElementById("console");
+				this.text = this.con.innerHTML;
+				
+				//Reset on-screen text
+				this.text = " ";
+				if (this.winCount > 0 || this.loseCount > 0) {
+					document.body.removeChild(this.printImage);
+				}
+				
+				//Generate two random numbers
+				this.Number1 = Math.floor(Math.random() * 100 + 1);
+				this.Number2 = Math.floor(Math.random() * 100 + 1);
+				
+				//Print the two numbers
+				console.log("Number1 is now: "+this.Number1);
+				this.Num1Text = "<p style='color: #000;'><strong>"+"Computer's Number = "+ this.Number1+"</strong></p>";
+				console.log("Number2 is now: "+this.Number2);
+				this.Num2Text = "<p style='color: #000;'><strong>"+"Your Number = "+ this.Number2+"</strong></p>";
+				
+				//Check results
+				if(this.Number1 < this.Number2) {
+					console.log("You Win!");
+					this.result = "<p style='color: #000;'><strong>"+"You Win!"+"</strong></p>";
+					this.winCount++;
+				} else if (this.Number1 > this.Number2) {
+					console.log("You Lose!");
+					this.result = "<p style='color: #000;'><strong>"+"You Lose!"+"</strong></p>";
+					this.loseCount++;
+				} else {
+					console.log("Draw!");
+					this.result = "<p style='color: #000;'><strong>"+"Draw!"+"</strong></p>";
+				}
+				
+				//Set image to display
+				this.printImage = new Image;
+				if(this.winCount > this.loseCount) {
+					//Happy Face
+					this.printImage = this.happy;
+				} else if (this.winCount < this.loseCount) {
+					//Sad Face
+					this.printImage = this.sad;
+				}
+				
+				//Print the counters
+				console.log("winCount is now: "+this.winCount);
+				console.log("loseCount is now: "+this.loseCount);
+				this.winText = "<p style='color: #000;'><strong>"+"Wins: "+ this.winCount+"</strong></p>";
+				this.loseText = "<p style='color: #000;'><strong>"+"Losses: "+ this.loseCount+"</strong></p>";
+				
+				//Print everything to the screen
+				this.text += this.Num1Text;
+				this.text += this.Num2Text;
+				this.text += this.result;
+				this.text += this.winText;
+				this.text += this.loseText;
+				this.con.innerHTML = this.text;
+				document.body.appendChild(this.printImage);
+			}
+		}
+		
+		function ButtonCallBack()
+		{
+			//Start game when button is pressed
+			m.playGame();
+		}
+		
+		</script>
+
+	</HEAD>
+	<BODY>
+		<HEADER>
+			<H1>Lucky Number</H1>			
+		</HEADER>
+		<button onclick="ButtonCallBack()">Play Game</button>
+		<Section ID="console" style="border: 1px solid #000;">
+		
+		</section>
+		<script>
+		m = new Main();
+		</script>
+	</BODY>
+
+</HTML>

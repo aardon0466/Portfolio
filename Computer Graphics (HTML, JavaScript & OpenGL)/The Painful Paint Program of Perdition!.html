@@ -1,0 +1,727 @@
+<!-- Author: Alejandro Ardon, based on a template by Dr. Bradford A. Towle Jr. -->
+<!-- Date: 2/22/2024 -->
+
+<HTML lang="en">
+	<Head>
+	<Title>The Painful Paint Program of Perdition</TITLE>
+		
+		<script id="2dVertexShader" type="notjs">
+		attribute vec4 a_position;
+		attribute vec3 a_color;
+		varying vec3 v_color;
+		void main()
+		{
+			gl_PointSize = 5.0;
+			v_color = a_color;
+			gl_Position=a_position;
+		}		
+		</SCRIPT>
+		
+		<script id="2dFragmentShader" type="notjs">
+		precision mediump float;
+		varying vec3 v_color;
+		void main()
+		{
+			gl_FragColor = vec4(v_color,1);
+		}
+		</script>
+		
+		<script>
+		class InitWebGLProgram
+		{
+			constructor()
+			{
+				//Setup the viewport
+				gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+				
+				//Set clear colors and clear
+				gl.clearColor(.8, .8,.8, 1);
+				gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+			}
+			createShader(type,source)
+			{
+				var shader = gl.createShader(type);
+				gl.shaderSource(shader, source);
+				gl.compileShader(shader);
+				var success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+				if(success)
+				{
+					return shader;
+				}
+				//Else
+				console.error(gl.getShaderInfoLog(shader));
+				gl.deleteShader(shader);
+			}
+			
+			createProgram(vs,fs)
+			{
+				var program = gl.createProgram();
+				gl.attachShader(program, vs);
+				gl.attachShader(program, fs);
+				gl.linkProgram(program);
+				var success = gl.getProgramParameter(program, gl.LINK_STATUS);
+				if(success)
+				{
+					return program;
+				}
+				//Else
+				console.error(gl.getProgramInfoLog(program));
+				gl.deleteProgram(program);
+			}
+		}
+	
+		class Shape
+		{
+			constructor()
+			{
+				this.positions = [];
+				this.isPoly = 0;
+				this.style;
+				
+				//Create a position Buffer
+				this.positionBuffer = gl.createBuffer();
+				
+				//Tracks current number of verticies
+				this.vertCount = 0;
+				
+				this.isDone = false;
+			}
+			
+			addTempPoint(x,y,r,g,b)
+			{
+				this.positions.push(x);
+				this.positions.push(y);
+				this.positions.push(r);
+				this.positions.push(g);
+				this.positions.push(b);
+				
+				//Bind "ARRAY_BUFFER type to the positionBuffer"
+				gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+				
+				//Load the points
+				gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.positions), gl.STATIC_DRAW);
+				
+				this.vertCount++;
+			}
+			
+			removeTempPoint()
+			{
+				for(let j = 0; j < 5; j++)
+				{
+					this.positions.pop();
+				}
+				this.vertCount--;
+				
+				//Bind "ARRAY_BUFFER type to the positionBuffer"
+				gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+				
+				//Load the points
+				gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.positions), gl.STATIC_DRAW);
+			}
+			
+			addPoint(X,Y,R,G,B)
+			{
+				this.positions.push(X);
+				this.positions.push(Y);
+				this.positions.push(R);
+				this.positions.push(G);
+				this.positions.push(B);
+				
+				//Bind "ARRAY_BUFFER type to the positionBuffer"
+				gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+				
+				//Load the points
+				gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.positions), gl.STATIC_DRAW);
+				
+				this.vertCount++;
+				if(this.vertCount >= 3)
+				{
+					this.isDone = true;
+				}
+			}
+			
+			update()
+			{
+				
+			}
+			
+			render(program)
+			{
+				//gl.clear(gl.COLOR_BUFFER_BIT);
+				//Find the attribute in the program
+				var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
+				
+				//Specify how to read the vertices
+				gl.enableVertexAttribArray(positionAttributeLocation);
+				var colorAttributeLocation = gl.getAttribLocation(program, "a_color");
+				
+				gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+				
+				
+				//Tell the attribute how to get data out of positionBuffer
+				
+				//Vertices
+				var type = gl.FLOAT;
+				var normalize = false;
+				var stride = 5*Float32Array.BYTES_PER_ELEMENT;
+				var offset = 2*Float32Array.BYTES_PER_ELEMENT;
+				gl.vertexAttribPointer(positionAttributeLocation, 2, type, normalize, stride, 0);
+				
+				//Color
+				gl.enableVertexAttribArray(colorAttributeLocation);
+				gl.vertexAttribPointer(colorAttributeLocation, 3, type, normalize, stride, offset);
+				
+				//Generate the shape(s)
+				var primitiveType = gl.TRIANGLES;
+				if(!this.isDone || this.style == "outline")
+				{
+					primitiveType = gl.LINE_LOOP;
+				}
+				var offset = 0;
+				gl.drawArrays(primitiveType, offset, this.vertCount);
+			}
+		}
+		
+		class Line extends Shape
+		{
+			constructor()
+			{
+				super();
+			}
+			
+			addPoint(X,Y, R, G, B)
+			{
+				this.positions.push(X);
+				this.positions.push(Y);
+				this.positions.push(R);
+				this.positions.push(G);
+				this.positions.push(B);
+
+				
+				//Bind "ARRAY_BUFFER type to the positionBuffer"
+				gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+				
+				//Load the points
+				gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.positions), gl.STATIC_DRAW);
+				
+				this.vertCount++;
+				if(this.vertCount >= 2)
+				{
+					this.isDone = true;
+				}
+			}
+			
+			render(program)
+			{
+				//gl.clear(gl.COLOR_BUFFER_BIT);
+				//Find the attribute in the program
+				var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
+				
+				//Specify how to read the vertices
+				gl.enableVertexAttribArray(positionAttributeLocation);
+				var colorAttributeLocation = gl.getAttribLocation(program, "a_color");
+				
+				gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+				
+				
+				//Tell the attribute how to get data out of positionBuffer
+				
+				//Vertices
+				var type = gl.FLOAT;
+				var normalize = false;
+				var stride = 5*Float32Array.BYTES_PER_ELEMENT;
+				var offset = 2*Float32Array.BYTES_PER_ELEMENT;
+				gl.vertexAttribPointer(positionAttributeLocation, 2, type, normalize, stride, 0);
+				
+				//Color
+				gl.enableVertexAttribArray(colorAttributeLocation);
+				gl.vertexAttribPointer(colorAttributeLocation, 3, type, normalize, stride, offset);
+				
+				//Generate the shape(s)
+				var primitiveType = gl.LINES;
+				var offset = 0;
+				gl.drawArrays(primitiveType, offset, this.vertCount);
+			}
+		}
+		
+		class Box extends Shape
+		{
+			constructor()
+			{
+				super();
+			}
+			
+			addPoint(X,Y,R,G,B)
+			{	
+				this.vertCount++;
+				if(this.vertCount >= 2)
+				{
+					this.isDone = true;
+					
+					for(let j = 0; j < 5; j++)
+					{
+						this.positions.pop();
+					}
+					
+					//Calculate radius of the circle
+					this.radius = Math.sqrt(Math.pow(X - this.originX, 2) + Math.pow(Y - this.originY, 2));
+					console.log("Radius = " + this.radius);
+					
+					//Calculate and add the new points
+					
+					//1,0
+					this.positions.push(X);
+					this.positions.push(this.originY);
+					this.positions.push(R);
+					this.positions.push(G);
+					this.positions.push(B);
+					
+					//0,0
+					this.positions.push(this.originX);
+					this.positions.push(this.originY);
+					this.positions.push(R);
+					this.positions.push(G);
+					this.positions.push(B);
+					
+					if(this.style == "fill")
+					{
+						//1,-1
+						this.positions.push(X);
+						this.positions.push(Y);
+						this.positions.push(R);
+						this.positions.push(G);
+						this.positions.push(B);
+					}
+					
+					//0,-1
+					this.positions.push(this.originX);
+					this.positions.push(Y);
+					this.positions.push(R);
+					this.positions.push(G);
+					this.positions.push(B);
+					
+					if(this.style == "outline")
+					{
+						//1,-1
+						this.positions.push(X);
+						this.positions.push(Y);
+						this.positions.push(R);
+						this.positions.push(G);
+						this.positions.push(B);
+					}
+					
+					this.vertCount += 2;
+				}
+				else
+				{
+					this.originX = X;
+					this.originY = Y;
+					
+					this.positions.push(X);
+					this.positions.push(Y);
+					this.positions.push(R);
+					this.positions.push(G);
+					this.positions.push(B);
+				}
+				
+				//Bind "ARRAY_BUFFER type to the positionBuffer"
+				gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+				
+				//Load the points
+				gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.positions), gl.STATIC_DRAW);
+				
+			}
+			
+			render(program)
+			{
+				//gl.clear(gl.COLOR_BUFFER_BIT);
+				//Find the attribute in the program
+				var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
+				
+				//Specify how to read the vertices
+				gl.enableVertexAttribArray(positionAttributeLocation);
+				var colorAttributeLocation = gl.getAttribLocation(program, "a_color");
+				
+				gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+				
+				
+				//Tell the attribute how to get data out of positionBuffer
+				
+				//Vertices
+				var type = gl.FLOAT;
+				var normalize = false;
+				var stride = 5*Float32Array.BYTES_PER_ELEMENT;
+				var offset = 2*Float32Array.BYTES_PER_ELEMENT;
+				gl.vertexAttribPointer(positionAttributeLocation, 2, type, normalize, stride, 0);
+				
+				//Color
+				gl.enableVertexAttribArray(colorAttributeLocation);
+				gl.vertexAttribPointer(colorAttributeLocation, 3, type, normalize, stride, offset);
+				
+				//Generate the shape(s)
+				var primitiveType = gl.TRIANGLE_STRIP;
+				if(!this.isDone || this.style == "outline")
+				{
+					primitiveType = gl.LINE_LOOP;
+				}
+				var offset = 0;
+				gl.drawArrays(primitiveType, offset, this.vertCount);
+			}
+		}
+		
+		class Circle extends Shape
+		{
+			constructor()
+			{
+				super();
+			}
+			
+			addPoint(X,Y,R,G,B)
+			{
+				this.vertCount++;
+				if(this.vertCount >= 2)
+				{
+					this.isDone = true;
+					
+					for(let j = 0; j < 5; j++)
+					{
+						this.positions.pop();
+					}
+					
+					//Calculate radius of the circle
+					this.radius = Math.sqrt(Math.pow(X - this.originX, 2) + Math.pow(Y - this.originY, 2));
+					console.log("Radius = " + this.radius);
+					
+					//Calculate and add the new points
+					for(let j = 0; j < 30; j++)
+					{
+						this.positions.push(this.originX + this.radius * Math.cos((12*Math.PI/180)*j));
+						this.positions.push(this.originY + this.radius * Math.sin((12*Math.PI/180)*j));
+						this.positions.push(R);
+						this.positions.push(G);
+						this.positions.push(B);
+					}
+					this.vertCount += 28;
+				}
+				else
+				{
+					this.originX = X;
+					this.originY = Y;
+					
+					this.positions.push(X);
+					this.positions.push(Y);
+					this.positions.push(R);
+					this.positions.push(G);
+					this.positions.push(B);
+				}
+				
+				//Bind "ARRAY_BUFFER type to the positionBuffer"
+				gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+				
+				//Load the points
+				gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.positions), gl.STATIC_DRAW);
+				
+			}
+			
+			render(program)
+			{
+				//gl.clear(gl.COLOR_BUFFER_BIT);
+				//Find the attribute in the program
+				var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
+				
+				//Specify how to read the vertices
+				gl.enableVertexAttribArray(positionAttributeLocation);
+				var colorAttributeLocation = gl.getAttribLocation(program, "a_color");
+				
+				gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+				
+				
+				//Tell the attribute how to get data out of positionBuffer
+				
+				//Vertices
+				var type = gl.FLOAT;
+				var normalize = false;
+				var stride = 5*Float32Array.BYTES_PER_ELEMENT;
+				var offset = 2*Float32Array.BYTES_PER_ELEMENT;
+				gl.vertexAttribPointer(positionAttributeLocation, 2, type, normalize, stride, 0);
+				
+				//Color
+				gl.enableVertexAttribArray(colorAttributeLocation);
+				gl.vertexAttribPointer(colorAttributeLocation, 3, type, normalize, stride, offset);
+				
+				//Generate the shape(s)
+				var primitiveType = gl.TRIANGLE_FAN;
+				if(!this.isDone || this.style == "outline")
+				{
+					primitiveType = gl.LINE_LOOP;
+				}
+				var offset = 0;
+				gl.drawArrays(primitiveType, offset, this.vertCount);
+			}
+		}
+		
+		class Poly extends Shape
+		{
+			constructor()
+			{
+				super();
+				this.isPoly = 1;
+			}
+			
+			addPoint(X,Y, R, G, B)
+			{
+				this.positions.push(X);
+				this.positions.push(Y);
+				this.positions.push(R);
+				this.positions.push(G);
+				this.positions.push(B);
+
+				
+				//Bind "ARRAY_BUFFER type to the positionBuffer"
+				gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+				
+				//Load the points
+				gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.positions), gl.STATIC_DRAW);
+				
+				this.vertCount++;
+			}
+			
+			render(program)
+			{
+				//gl.clear(gl.COLOR_BUFFER_BIT);
+				//Find the attribute in the program
+				var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
+				
+				//Specify how to read the vertices
+				gl.enableVertexAttribArray(positionAttributeLocation);
+				var colorAttributeLocation = gl.getAttribLocation(program, "a_color");
+				
+				gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+				
+				
+				//Tell the attribute how to get data out of positionBuffer
+				
+				//Vertices
+				var type = gl.FLOAT;
+				var normalize = false;
+				var stride = 5*Float32Array.BYTES_PER_ELEMENT;
+				var offset = 2*Float32Array.BYTES_PER_ELEMENT;
+				gl.vertexAttribPointer(positionAttributeLocation, 2, type, normalize, stride, 0);
+				
+				//Color
+				gl.enableVertexAttribArray(colorAttributeLocation);
+				gl.vertexAttribPointer(colorAttributeLocation, 3, type, normalize, stride, offset);
+				
+				//Generate the shape(s)
+				var primitiveType = gl.TRIANGLE_FAN;
+				if(!this.isDone)
+				{
+					primitiveType = gl.LINE_STRIP;
+				}
+				else if(this.style == "outline")
+				{
+					primitiveType = gl.LINE_LOOP;
+				}
+				var offset = 0;
+				gl.drawArrays(primitiveType, offset, this.vertCount);
+			}
+		}
+		
+		class main
+		{
+			constructor()
+			{
+				this.shapeSelection = document.getElementById("Shapes");
+				this.colorSelection = document.getElementById("Colors");
+				this.styleSelection = document.getElementById("Styles");				
+
+				//this.shapeType = this.selection.value;
+			
+				this.webGL = new InitWebGLProgram();
+				var vertexShaderSource = document.getElementById("2dVertexShader").text;
+				var fragmentShaderSource = document.getElementById("2dFragmentShader").text;
+				var vertexShader = this.webGL.createShader(gl.VERTEX_SHADER, vertexShaderSource);
+				var fragmentShader = this.webGL.createShader(gl.FRAGMENT_SHADER, fragmentShaderSource);
+				
+				//Link to program
+				this.program = this.webGL.createProgram(vertexShader,fragmentShader);
+				
+				//Set the program
+				gl.useProgram(this.program);
+				gl.PointSize = 5.0;
+				
+				this.shapes = [];		
+			}	
+			
+			static mouseH(event)
+			{
+				m.canvasHandle(event);
+			}
+			
+			static mouseM(event)
+			{
+				m.canvasMove(event);
+			}
+			
+			static mouseR(event)
+			{
+				m.canvasStop(event);
+			}
+			
+			canvasMove(event)
+			{
+				var rect = canvas.getBoundingClientRect();
+				var realX = event.clientX - rect.left;
+				var realY = event.clientY - rect.top;
+				var x = -1 + 2*realX/myCanvas.width;
+				var y = -1 + 2*(myCanvas.height - realY)/myCanvas.height;
+				
+				if(this.shapes.length > 0 && !this.shapes[this.shapes.length-1].isDone)
+				{
+					this.shapes[this.shapes.length-1].addTempPoint(x,y,this.r,this.g,this.b);
+					this.renderAll();
+					this.shapes[this.shapes.length-1].removeTempPoint();
+				}
+			}
+			
+			canvasHandle(event)
+			{
+				var rect = canvas.getBoundingClientRect();
+				var realX = event.clientX - rect.left;
+				var realY = event.clientY - rect.top;
+				console.log(realX+","+realY);
+				var x = -1 + 2*realX/myCanvas.width;
+				var y = -1 + 2*(myCanvas.height - realY)/myCanvas.height;
+				console.log("The click occurred on "+x+","+y);
+				
+				if(this.shapes.length == 0 || this.shapes[this.shapes.length-1].isDone)
+				{
+					//Set Color Type
+					this.colorType = this.colorSelection.value;
+					switch (this.colorType) {
+					case "red":
+						this.r = 1;
+						this.g = 0;
+						this.b = 0;
+						break;
+					case "green":
+						this.r = 0;
+						this.g = 0.8;
+						this.b = .5;
+						break;
+					case "blue":
+						this.r = 0;
+						this.g = 0;
+						this.b = 1;
+						break;
+					case "purple":
+						this.r = 1;
+						this.g = 0;
+						this.b = 1;
+						break;
+					case "black":
+						this.r = 0;
+						this.g = 0;
+						this.b = 0;
+						break;
+					default:
+						console.error("type invalid");
+					}	
+				
+					//Add a new object
+					this.shapeType = this.shapeSelection.value;					
+					switch (this.shapeType) {
+					case "triangle":
+						this.shapes.push(new Shape);
+						break;
+					case "lines":
+						this.shapes.push(new Line);
+						break;
+					case "circle":
+						this.shapes.push(new Circle);
+						break;
+					case "box":
+						this.shapes.push(new Box);
+						break;
+					case "poly":
+						this.shapes.push(new Poly);
+						break;
+					default:
+						console.error("type invalid");
+					}
+
+					//Set style type
+					this.shapes[this.shapes.length-1].style = this.styleSelection.value;					
+				}
+				
+				//Add new point to the last object				
+				this.shapes[this.shapes.length-1].addPoint(x,y, this.r, this.g, this.b);
+				this.renderAll();
+			}
+			
+			canvasStop(event)
+			{
+				if (this.shapes[this.shapes.length-1].isPoly == 1 && !this.shapes[this.shapes.length-1].isDone)
+				{
+					this.shapes[this.shapes.length-1].isDone = true;
+					this.renderAll();
+				}
+			}
+			
+			renderAll()
+			{
+				gl.clear(gl.COLOR_BUFFER_BIT);
+				for(this.i = 0; this.i < this.shapes.length; this.i++)
+				{
+					this.shapes[this.i].render(this.program);
+				}
+			}
+		}
+		
+		</script>
+	</Head>
+	<BODY>
+		<HEADER>
+		
+		</HEADER>
+		<CANVAS id="myCanvas" width="640" height="400">
+			Your browser does not support canvas.
+		</CANVAS>
+		
+		<select name="Shapes" id="Shapes">
+			<option value="triangle">Triangle</option>
+			<option value="lines">Line</option>
+			<option value="circle">Circle</option>
+			<option value="box">Box</option>				
+			<option value="poly">Polygon</option>				
+
+		</select>
+		
+		<select name="Colors" id="Colors">
+			<option value="red">Red</option>
+			<option value="green">Green</option>
+			<option value="blue">Blue</option>
+			<option value="purple">Purple</option>
+			<option value="black">Black</option>
+		</select>
+		
+		<select name="Styles" id="Styles">
+			<option value="fill">Fill</option>
+			<option value="outline">Outline</option>
+		</select>
+		
+		<FOOTER>
+		
+		</FOOTER>
+		<SCRIPT>
+			var canvas = document.getElementById("myCanvas");
+			var gl = canvas.getContext("webgl");
+			canvas.addEventListener("click",main.mouseH);
+			canvas.addEventListener("contextmenu",main.mouseR);
+			canvas.addEventListener("mousemove",main.mouseM);
+			var m = new main();
+		</SCRIPT>		
+	</BODY>
+</HTML>
+		
+		

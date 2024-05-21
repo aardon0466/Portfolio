@@ -1,0 +1,442 @@
+<!-- Author: Alejandro Ardon, based on a template by Dr. Bradford A. Towle Jr. -->
+<!-- Date: 1/29/2024 -->
+
+<HTML lang="en">
+	<HEAD>
+		<META CHARSET="UTF-8">
+		<TITLE>2D Adventure</TITLE>
+		<script>
+		class Main
+		{
+			constructor()
+			{
+				//Create 2D array of the map
+				this.map = [
+				[1, 1, 1, 1, 1, 1, 1],
+				[1, 0, 2, 0, 0, 0, 1],
+				[1, 0, 2, 0, 2, 0, 1],
+				[1, 0, 0, 0, 0, 0, 1],
+				[1, 0, 2, 2, 2, 0, 1],
+				[1, 0, 0, 2, 0, 0, 1],
+				[1, 1, 1, 1, 1, 1, 1]
+				];
+				
+				//Generate the map
+				this.generateMap();
+				
+				//Generate the Hero, Monsters, and Potions
+				this.hero = new Hero();
+				this.hero.render();
+				this.monsters = [];
+				this.potions = [];
+				
+				//Create Monster 1
+				this.monsters[0] = new Monster();
+				this.monsters[0].image.src = "images/bat.png";
+				this.monsters[0].maxHP = 15;
+				this.monsters[0].HP = this.monsters[0].maxHP;
+				this.monsters[0].ATK = 1;
+				this.monsters[0].DEF = 1;
+				this.monsters[0].X = 1;
+				this.monsters[0].Y = 5;
+				this.monsters[0].render();
+				
+				//Create Monster 2
+				this.monsters[1] = new Monster();
+				this.monsters[1].image.src = "images/skeleton.png";
+				this.monsters[1].maxHP = 20;
+				this.monsters[1].HP = this.monsters[1].maxHP;
+				this.monsters[1].ATK = 2;
+				this.monsters[1].DEF = 2;
+				this.monsters[1].X = 5;
+				this.monsters[1].Y = 1;
+				this.monsters[1].render();
+				
+				//Create Monster 3
+				this.monsters[2] = new Monster();
+				this.monsters[2].image.src = "images/boss.png";
+				this.monsters[2].maxHP = 25;
+				this.monsters[2].HP = this.monsters[2].maxHP;
+				this.monsters[2].ATK = 4;
+				this.monsters[2].DEF = 3;
+				this.monsters[2].X = 5;
+				this.monsters[2].Y = 5;
+				this.monsters[2].render();
+				
+				//Create Potion 1
+				this.potions[0] = new Potion();
+				this.potions[0].X = 4;
+				this.potions[0].Y = 5;
+				
+				//Create Potion 2
+				this.potions[1] = new Potion();
+				this.potions[1].X = 2;
+				this.potions[1].Y = 5;
+			}
+			
+			//Generate the map
+			generateMap()
+			{
+				for(this.i = 0; this.i < 7; this.i++)
+				{
+					for(this.j = 0; this.j < 7; this.j++)
+					{
+						if(this.map[this.j][this.i] == 0)
+						{
+							//Path
+							ctx.fillStyle = "#58CB58"
+							ctx.fillRect(this.i * 64, this.j * 64, 64, 64);
+						}
+						else if(this.map[this.j][this.i] == 1)
+						{
+							//Wall
+							this.drawWall(this.i, this.j);
+						}
+						else if(this.map[this.j][this.i] == 2)
+						{
+							//Tree
+							this.drawTree(this.i, this.j);
+						}
+					}
+				}
+			}
+			
+			drawWall(X, Y)
+			{
+				ctx.fillStyle = "#5A5453"
+				ctx.fillRect(X * 64, Y * 64, 64, 64);
+				
+				//Horizontal lines
+				ctx.fillStyle = "#000";
+				ctx.fillRect(X * 64, Y * 64, 64, 2);
+				ctx.fillRect(X * 64, Y * 64 + 62, 64, 2);
+				ctx.fillRect(X * 64, (Y * 64) + 20, 64, 4);
+				ctx.fillRect(X * 64, (Y * 64) + 42, 64, 4);
+				
+				//Vertical lines
+				ctx.fillRect(X * 64 + 20, Y * 64, 4, 22);
+				ctx.fillRect(X * 64, Y * 64 + 22, 3, 23);
+				ctx.fillRect(X * 64 + 62, Y * 64 + 22, 3, 23);
+				ctx.fillRect(X * 64 + 42, Y * 64 + 42, 4, 22);
+			}
+			
+			drawTree(X, Y)
+			{
+				ctx.fillStyle = "#428A42";
+				ctx.fillRect(X * 64, Y * 64, 64, 64);
+				ctx.fillStyle = "#2C5C2C";
+				ctx.strokeStyle = "#2C5C2C";
+				ctx.beginPath();
+				ctx.moveTo(X * 64 + 32, Y * 64);
+				ctx.lineTo(X * 64 + 64, Y * 64 + 48);
+				ctx.lineTo(X * 64, Y * 64 + 48);
+				ctx.lineTo(X * 64 + 32, Y * 64);
+				ctx.fill();
+				ctx.fillStyle = "#41161B";
+				ctx.fillRect(X * 64 + 24, Y * 64 + 48, 16, 16);
+			}
+			
+			//React to the user's inputs
+			left() 
+			{
+				this.current = this.map[this.hero.Y][this.hero.X - 1];
+				this.Xchange = -1;
+				this.Ychange = 0;
+				this.turn();
+			}
+			up() 
+			{
+				this.current = this.map[this.hero.Y - 1][this.hero.X];
+				this.Xchange = 0;
+				this.Ychange = -1;
+				this.turn();
+			}
+			down() 
+			{
+				this.current = this.map[this.hero.Y + 1][this.hero.X];
+				this.Xchange = 0;
+				this.Ychange = 1;
+				this.turn();
+			}
+			right() 
+			{
+				this.current = this.map[this.hero.Y][this.hero.X + 1];
+				this.Xchange = 1;
+				this.Ychange = 0;
+				this.turn();
+			}
+			
+			//Generate a monster's random movement
+			Movement()
+			{
+				this.movement = Math.floor(Math.abs(Math.random() * 10 - 5));
+				if(this.movement == 0)
+				{
+					this.Xchange = -1;
+					this.Ychange = 0;
+				}
+				else if(this.movement == 1)
+				{
+					this.Xchange = 0;
+					this.Ychange = -1;
+				}
+				else if(this.movement == 2)
+				{
+					this.Xchange = 0;
+					this.Ychange = 1;
+				}
+				else if(this.movement == 3)
+				{
+					this.Xchange = 1;
+					this.Ychange = 0;
+				}
+			}
+			
+			//Play out the turn
+			turn()
+			{
+				console.log(this.current);
+				
+				//If the hero encounters a monster
+				this.rand = Math.floor(Math.abs(Math.random() * 10 - 7));
+				if(this.hero.X + this.Xchange == this.monsters[0].X && this.hero.Y + this.Ychange == this.monsters[0].Y)
+				{
+					this.damage = (this.hero.ATK - this.monsters[0].DEF) * this.rand;
+					this.monsters[0].HP -= this.damage;
+					console.log(this.damage + " damage to bat");
+				}
+				else if(this.hero.X + this.Xchange == this.monsters[1].X && this.hero.Y + this.Ychange == this.monsters[1].Y)
+				{
+					this.damage = (this.hero.ATK - this.monsters[1].DEF) * this.rand;
+					this.monsters[1].HP -= this.damage;
+					console.log(this.damage + " damage to skeleton");
+				}
+				else if(this.hero.X + this.Xchange == this.monsters[2].X && this.hero.Y + this.Ychange == this.monsters[2].Y)
+				{
+					this.damage = (this.hero.ATK - this.monsters[2].DEF) * this.rand;
+					this.monsters[2].HP -= this.damage;
+					console.log(this.damage + " damage to boss");
+				}
+				else if(this.hero.X + this.Xchange == this.potions[0].X && this.hero.Y + this.Ychange == this.potions[0].Y)
+				{
+					console.log("Stopped by potion 1");
+					this.potions[0].HP = 0;
+					this.hero.HP = this.hero.maxHP;
+					this.hero.X += this.Xchange;
+					this.hero.Y += this.Ychange;
+				}
+				else if(this.hero.X + this.Xchange == this.potions[1].X && this.hero.Y + this.Ychange == this.potions[1].Y)
+				{
+					console.log("Stopped by potion 2");
+					this.potions[1].HP = 0;
+					this.hero.HP = this.hero.maxHP;
+					this.hero.X += this.Xchange;
+					this.hero.Y += this.Ychange;
+				}
+				else if(this.current == 0) //Checks if the hero is moving onto a path
+				{
+					this.hero.X += this.Xchange;
+					this.hero.Y += this.Ychange;
+				}				
+				this.generateMap();
+				
+				//Check Potions
+				for(this.i = 0; this.i < 2; this.i++)
+				{
+					if(this.potions[this.i].HP > 0)
+					{
+						this.potions[this.i].update();
+					}
+				}
+				
+				//Decide Monster Movement
+				for(this.i = 0; this.i < 3; this.i++)
+				{
+					//Check if the monster is alive
+					if(this.monsters[this.i].HP > 0)
+					{
+						//Generate the monster's movement 
+						this.Movement();
+						this.current = this.map[this.monsters[this.i].Y + this.Ychange][this.monsters[this.i].X + this.Xchange];
+						
+						//If the monster encounters the hero
+						if(this.monsters[this.i].X + this.Xchange == this.hero.X && this.monsters[this.i].Y + this.Ychange == this.hero.Y)
+						{
+							this.damage = (this.monsters[this.i].ATK - this.hero.DEF) * this.rand;
+							console.log(this.damage + " damage to hero");
+							this.hero.HP -= this.damage;
+						}
+						else if(this.current == 0) //Check if the monster is moving onto a path
+						{
+							this.monsters[this.i].X += this.Xchange;
+							this.monsters[this.i].Y += this.Ychange;
+						}
+						this.monsters[this.i].update();
+					}
+					else
+					{
+						this.monsters[this.i].X = 0;
+						this.monsters[this.i].Y = 0;
+					}
+				}
+				
+				console.log("current HP = " + this.hero.HP);
+				
+				//Check if the game has ended
+				this.win = new Image();
+				this.win.src = "images/win.png";
+				this.lose = new Image();
+				this.lose.src = "images/game_over.png";
+				if(this.hero.HP <= 0)
+				{
+					console.log("game over");
+					ctx.drawImage(this.lose, 0, 0, 448, 448);
+				}
+				else if(this.monsters[0].HP <= 0 && this.monsters[1].HP <= 0 && this.monsters[2].HP <= 0)
+				{
+					console.log("you win");
+					ctx.drawImage(this.win, -10, -5, 448, 448);
+				}
+				else 
+				{
+					this.hero.update();
+				}
+				
+				
+			}
+			
+		}
+		
+		//Base class for the hero and monsters
+		class Character 
+		{
+			constructor()
+			{
+				//Create variables
+				this.maxHP = 0;
+				this.HP = this.maxHP;
+				this.ATK = 0;
+				this.DEF = 0;
+				this.X = 1;
+				this.Y = 1;
+				this.image = new Image();
+			}
+		}
+		
+		//Hero Class
+		class Hero extends Character
+		{
+			constructor()
+			{
+				super();
+				this.maxHP = 30;
+				this.HP = this.maxHP;
+				this.ATK = 4;
+				this.DEF = 2;
+			}
+			
+			update()
+			{
+				console.log(this.X + ", " + this.Y);
+				this.render();
+			}
+			
+			render()
+			{
+				//Render Image
+				this.image.src = "images/hero.png";
+				ctx.drawImage(this.image, 64 * this.X, 64 * this.Y, 64, 64);
+				
+				//Render health bar
+				ctx.strokeStyle = "#000"
+				ctx.strokeRect(64 * this.X, 64 * this.Y + 56, 64, 8);
+				this.HPbar = 64*(this.HP/this.maxHP);
+				ctx.fillStyle = "#F00"
+				ctx.fillRect(64 * this.X, 64 * this.Y + 56, this.HPbar, 8);
+			}
+		}
+		
+		//Monsters Class
+		class Monster extends Character
+		{
+			constructor()
+			{
+				super();
+			}
+			
+			update()
+			{
+				this.render();
+			}
+			
+			render()
+			{
+				ctx.drawImage(this.image, 64 * this.X, 64 * this.Y, 64, 64);
+				
+				//Render health bar
+				ctx.strokeStyle = "#000"
+				ctx.strokeRect(64 * this.X, 64 * this.Y + 56, 64, 8);
+				this.HPbar = 64*(this.HP/this.maxHP);
+				ctx.fillStyle = "#F00"
+				ctx.fillRect(64 * this.X, 64 * this.Y + 56, this.HPbar, 8);
+			}
+		}
+		
+		//Potion Class
+		class Potion extends Character
+		{
+			constructor()
+			{
+				super();
+				this.HP = 1;
+				this.image.src = "images/potion.png";
+			}
+			update()
+			{
+				this.render();
+			}
+			
+			render()
+			{
+				ctx.drawImage(this.image, 64 * this.X, 64 * this.Y, 64, 64);
+			}
+		}
+		
+		function ButtonLeft() 
+		{
+			m.left();
+		}
+		function ButtonUp() 
+		{
+			m.up();
+		}
+		function ButtonDown() 
+		{
+			m.down();
+		}
+		function ButtonRight() 
+		{
+			m.right();
+		}
+		
+		</script>
+
+	</HEAD>
+	<BODY>
+		<HEADER>
+			<H1>2D Adventure</H1>			
+		</HEADER>
+		<CANVAS id="myCanvas" width="448" height="448"> </CANVAS>
+		<button onclick="ButtonLeft()">Left</button>
+		<button onclick="ButtonUp()">Up</button>
+		<button onclick="ButtonDown()">Down</button>
+		<button onclick="ButtonRight()">Right</button>
+		<script>
+		var canvas = document.getElementById("myCanvas");
+		var ctx = canvas.getContext("2d");	
+			
+		m = new Main();
+		</script>
+	</BODY>
+
+</HTML>
