@@ -1,4 +1,4 @@
-Hi 👋 My name is Alejandro Ardon
+Hello, my name is Alejandro Ardon
 ================================
 
 Software Developer, Game Developer, and Animator
