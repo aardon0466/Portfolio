@@ -31,16 +31,16 @@ I participated in the Fall 2024 Respawn Game Jam where I assisted the design and
 
 Here is the link to the itch.io page for the game: [https://crazyniss1.itch.io/polytron](https://crazyniss1.itch.io/polytron)
 
-The Repository for the game is below
+The repository for the game is below
 
 <div width="100%" align="center"><a href="https://github.com/KelseaWasHere/Game-Jam-Fall-2024" align="left"><img align="left" width="60%" src="https://github-readme-stats.vercel.app/api/pin/?username=aardon0466&repo=KelseaWasHere/Game-Jam-Fall-2024&title_color=0891b2&text_color=ffffff&icon_color=0891b2&bg_color=1c1917&hide_border=true&locale=en" /></a>
-</div><br><br><br><br><br><br><br><br>
+</div><br><br><br><br><br><br><br>
 
 <b>Mobile Security Awareness Training Software</b>
 
 Assisted in the design and development of a software to test the user's knowledge of social engineering attacks. This development process included writing a Software Design Document and a Software Requirement Document, both according to IEEE specifications.
 
-The Repository for the software is below
+The repository for the software is below
 
 <div width="100%" align="center"><a href="https://github.com/KelseaWasHere/MobileSecuritySoftware" align="left"><img align="left" width="60%" src="https://github-readme-stats.vercel.app/api/pin/?username=aardon0466&repo=KelseaWasHere/MobileSecuritySoftware&title_color=0891b2&text_color=ffffff&icon_color=0891b2&bg_color=1c1917&hide_border=true&locale=en" /></a>
 </div>
