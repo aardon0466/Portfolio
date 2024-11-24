@@ -25,6 +25,17 @@ I am a senior studying computer science at Florida Polytechnic University with a
 
 ### Top Projects
 
+<b>Fall 2024 Florida Polytechnic Game Expo</b>
+
+I helped to design and develop a first person shooter/platformer for the Florida Polytechnic Game Expo. My contributions include (but are not limited to) modelling one enemy and rigging and animating two. 
+
+Here is the link to the itch.io page for the game: [https://space-r4v3n.itch.io/elemental-isles](https://space-r4v3n.itch.io/elemental-isles)
+
+The repository for the game is below
+
+<div width="100%" align="center"><a href="https://github.com/nova-thomas/Game-1-Final-Group-5" align="left"><img align="left" width="60%" src="https://github-readme-stats.vercel.app/api/pin/?username=aardon0466&repo=nova-thomas/Game-1-Final-Group-5&title_color=0891b2&text_color=ffffff&icon_color=0891b2&bg_color=1c1917&hide_border=true&locale=en" /></a>
+</div><br><br><br><br><br><br><br>
+
 <b>Fall 2024 Respawn Game Jam</b>
 
 I participated in the Fall 2024 Respawn Game Jam where I assisted the design and development of a third person platformer using the Unreal engine in under 72 hours.
