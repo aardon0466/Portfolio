@@ -27,7 +27,7 @@ I am a senior studying computer science at Florida Polytechnic University with a
 
 <b>Fall 2024 Florida Polytechnic Game Expo</b>
 
-I helped to design and develop a first person shooter/platformer for the Florida Polytechnic Game Expo. My contributions include (but are not limited to) modelling one enemy and rigging and animating two. 
+I helped to design and develop the third place winner (a first person shooter/platformer) for the Fall Florida Polytechnic Game Expo. My contributions include (but are not limited to) modelling an enemy and rigging and animating two. 
 
 Here is the link to the itch.io page for the game: [https://space-r4v3n.itch.io/elemental-isles](https://space-r4v3n.itch.io/elemental-isles)
 
