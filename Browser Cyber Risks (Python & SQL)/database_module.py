@@ -5,8 +5,8 @@ def connect_to_db():
     try:
         db = mysql.connector.connect(
             host="localhost",
-            user="aardon0466",  # Replace with your MySQL username
-            password="SQLPass",  # Replace with your MySQL password
+            user=" ",  # Replace with your MySQL username
+            password=" ",  # Replace with your MySQL password
             database="BrowserSecurity"  # Ensure your database is created
         )
         return db
