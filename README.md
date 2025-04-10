@@ -28,7 +28,7 @@ I am a senior studying computer science at Florida Polytechnic University with a
 <b>Incentive Spirometer Game for Lakeland Regional Health</b>
 
 I am currently working within a large team to design and develop a game for an incentive spirometer for Lakeland Regional Health as my senior capstone project. Our task is to create a game to incentivize pediatric patients to use an incentive spirometer to maintain their lung health. To do this, we've developed an attachment for existing incentive spirometers to measure air pressure, a 2D platformer that will prompt the player to use the spirometer, and a console to house the game. My contributions include participating in brainstorming sessions, discussions with our sponsor, translating level designs to Unity, programming multiple key features, and presenting the project for a panel.
-</div><br><br><br>
+</div><br><br>
 
 <b>Spring 2025 Florida Polytechnic Game Expo</b>
 
@@ -39,7 +39,7 @@ Here is the link to the itch.io page for the game: [https://spectra-nova.itch.io
 The repository for the game is below
 
 <div width="100%" align="center"><a href="https://github.com/nova-thomas/Elemental_Isles_Multiplayer" align="left"><img align="left" width="60%" src="https://github-readme-stats.vercel.app/api/pin/?username=aardon0466&repo=nova-thomas/Game-1-Final-Group-5&title_color=0891b2&text_color=ffffff&icon_color=0891b2&bg_color=1c1917&hide_border=true&locale=en" /></a>
-</div><br><br><br><br><br><br><br>
+</div><br><br><br><br><br><br><br><br>
 
 <b>Fall 2024 Florida Polytechnic Game Expo</b>
 
@@ -50,7 +50,7 @@ Here is the link to the itch.io page for the game: [https://space-r4v3n.itch.io/
 The repository for the game is below
 
 <div width="100%" align="center"><a href="https://github.com/nova-thomas/Game-1-Final-Group-5" align="left"><img align="left" width="60%" src="https://github-readme-stats.vercel.app/api/pin/?username=aardon0466&repo=nova-thomas/Game-1-Final-Group-5&title_color=0891b2&text_color=ffffff&icon_color=0891b2&bg_color=1c1917&hide_border=true&locale=en" /></a>
-</div><br><br><br><br><br><br><br>
+</div><br><br><br><br><br><br><br><br>
 
 <b>Fall 2024 Respawn Game Jam</b>
 
@@ -61,7 +61,7 @@ Here is the link to the itch.io page for the game: [https://crazyniss1.itch.io/p
 The repository for the game is below
 
 <div width="100%" align="center"><a href="https://github.com/KelseaWasHere/Game-Jam-Fall-2024" align="left"><img align="left" width="60%" src="https://github-readme-stats.vercel.app/api/pin/?username=aardon0466&repo=KelseaWasHere/Game-Jam-Fall-2024&title_color=0891b2&text_color=ffffff&icon_color=0891b2&bg_color=1c1917&hide_border=true&locale=en" /></a>
-</div><br><br><br><br><br><br><br>
+</div><br><br><br><br><br><br><br><br>
 
 <b>Mobile Security Awareness Training Software</b>
 
