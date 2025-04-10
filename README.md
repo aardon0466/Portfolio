@@ -28,7 +28,7 @@ I am a senior studying computer science at Florida Polytechnic University with a
 <b>Incentive Spirometer Game for Lakeland Regional Health</b>
 
 I am currently working within a large team to design and develop a game for an incentive spirometer for Lakeland Regional Health as my senior capstone project. Our task is to create a game to incentivize pediatric patients to use an incentive spirometer to maintain their lung health. To do this, we've developed an attachment for existing incentive spirometers to measure air pressure, a 2D platformer that will prompt the player to use the spirometer, and a console to house the game. My contributions include participating in brainstorming sessions, discussions with our sponsor, translating level designs to Unity, programming multiple key features, and presenting the project for a panel.
-</div><br><br><br><br><br><br><br>
+</div><br><br><br>
 
 <b>Spring 2025 Florida Polytechnic Game Expo</b>
 
