@@ -7,7 +7,7 @@ Software Developer, Game Developer, and Animator
 I am a senior studying computer science at Florida Polytechnic University with a particular interest in Animation and Game Design & Development
 
 * 🌍  I'm based in Auburndale, FL
-* ✉️  You can contact me at [aardon0466@floridapoly.edu](mailto:aardon0466@floridapoly.edu)
+* ✉️  You can contact me at [ardoncareer@gmail.com](mailto:ardoncareer@gmail.com)
 * 🧠  I'm learning Game Design & Development
 * ⚡  Currently working on an Incentive Spirometer Game for Lakeland Regional Health
 
