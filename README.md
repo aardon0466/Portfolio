@@ -4,7 +4,7 @@ Hello, my name is Alejandro Ardon
 Software Developer, Game Developer, and Animator
 ------------------------------------------------
 
-I am a senior studying computer science at Florida Polytechnic University with a particular interest in Animation and Game Design & Development
+I am a recent computer science graduate from Florida Polytechnic University with a particular interest in Animation and Game Design & Development
 
 * 🌍  I'm based in Auburndale, FL
 * ✉️  You can contact me at [ardoncareer@gmail.com](mailto:ardoncareer@gmail.com)
